@@ -1,0 +1,30 @@
+{
+  "name": "@paircode/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "@clerk/nextjs": "7.9.2",
+    "tailwindcss": "4.3.3",
+    "@tailwindcss/postcss": "4.3.3",
+    "yjs": "13.6.32",
+    "y-websocket": "3.1.0",
+    "y-monaco": "0.1.6",
+    "monaco-editor": "0.56.0",
+    "@paircode/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}

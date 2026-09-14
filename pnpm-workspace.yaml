@@ -1,0 +1,13 @@
+packages:
+  - apps/*
+  - packages/*
+allowBuilds:
+  msgpackr-extract: false
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - bullmq@6.3.6
+  - zod@4.6.5

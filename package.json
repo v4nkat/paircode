@@ -1,0 +1,51 @@
+{
+  "name": "paircode",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24.0.0 <25",
+    "pnpm": ">=11 <12"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @paircode/web dev",
+    "dev:collaboration": "pnpm --filter @paircode/collaboration dev",
+    "dev:worker": "pnpm --filter @paircode/worker dev",
+    "build": "pnpm db:generate && pnpm --filter @paircode/web build",
+    "db:generate": "pnpm --filter @paircode/database generate",
+    "db:validate": "pnpm --filter @paircode/database validate",
+    "db:migrate": "pnpm --filter @paircode/database migrate",
+    "db:seed": "pnpm --filter @paircode/database seed",
+    "env:check": "node scripts/check-env.ts",
+    "infra:check": "node scripts/check-infra.ts",
+    "typecheck": "pnpm db:generate && tsc --noEmit && pnpm --filter @paircode/web typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test",
+    "test:performance": "node scripts/performance.ts",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:integration && pnpm infra:check",
+    "codebook": "node scripts/codebook.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@paircode/config": "workspace:*",
+    "@paircode/contracts": "workspace:*",
+    "@paircode/problem-catalog": "workspace:*",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.13.4",
+    "@types/pg": "8.23.1",
+    "dotenv": "17.4.2",
+    "eslint": "10.10.0",
+    "pg": "8.23.0",
+    "prettier": "3.9.6",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.0",
+    "vitest": "5.0.0",
+    "yaml": "2.9.1"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules
+.next
+pnpm-lock.yaml
+packages/database/src/generated
+coverage
+playwright-report
+test-results
+.codebook
+**/next-env.d.ts

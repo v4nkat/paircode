@@ -27,6 +27,7 @@ export default function HomePage() {
           PairCode
         </a>
         <nav aria-label="Main navigation">
+          <a href="/dashboard">Your rooms</a>
           <a href="#roadmap">Roadmap</a>
           <a className="repo-link" href="https://github.com/v4nkat/paircode">
             View source <span aria-hidden="true">↗</span>
@@ -37,7 +38,8 @@ export default function HomePage() {
         <section className="hero wrap" aria-labelledby="hero-title">
           <div className="hero-copy">
             <p className="eyebrow">
-              <span className="status-dot" aria-hidden="true" /> BUILDING IN PUBLIC · MILESTONE 0
+              <span className="status-dot" aria-hidden="true" /> BUILDING IN PUBLIC · ROOMS &
+              INVITATIONS
             </p>
             <h1 id="hero-title">
               Good code starts
@@ -56,7 +58,7 @@ export default function HomePage() {
                 See what’s next <span aria-hidden="true">↓</span>
               </a>
             </div>
-            <p className="availability">Foundation release. Interview rooms are coming next.</p>
+            <p className="availability">Rooms and invitations. Live editing is coming next.</p>
           </div>
           <div
             className="editor-preview"
@@ -125,7 +127,7 @@ export default function HomePage() {
                 <strong>Foundation</strong>
                 <p>Typed contracts, database schema, infrastructure, and tests.</p>
               </div>
-              <span className="badge">Current release</span>
+              <span className="badge">Complete</span>
             </li>
             <li>
               <span className="milestone-number">01</span>
@@ -133,7 +135,7 @@ export default function HomePage() {
                 <strong>Rooms & invitations</strong>
                 <p>Sign in, invite a partner, and manage your sessions.</p>
               </div>
-              <span className="next-label">Next</span>
+              <span className="badge">In verification</span>
             </li>
             <li>
               <span className="milestone-number">02–05</span>

@@ -20,7 +20,8 @@
     "y-websocket": "3.1.0",
     "y-monaco": "0.1.6",
     "monaco-editor": "0.56.0",
-    "@paircode/contracts": "workspace:*"
+    "@paircode/contracts": "workspace:*",
+    "@paircode/database": "workspace:*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

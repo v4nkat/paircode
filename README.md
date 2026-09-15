@@ -16,7 +16,9 @@ The project explores three concrete engineering problems:
 - Executing untrusted programs outside the web application.
 - Recovering work when PostgreSQL, a queue, and an execution service disagree about progress.
 
-The implementation proceeds in small milestones with explicit tests and tradeoffs. No performance or user-adoption numbers are claimed before measurement.
+The first useful demo is deliberately small: invite one partner, solve one problem, and come back to the attempts afterward. Getting reconnects and failed runs right matters more here than adding another feature to the landing page.
+
+The [build notes](docs/build-notes.md) cover fixes from testing and decisions still worth revisiting. Performance numbers will come from measured runs.
 
 ## Stack
 
@@ -102,6 +104,7 @@ Foundation checks do not establish that the future auth, CRDT, queue, or sandbox
 - [Milestone roadmap](docs/roadmap.md)
 - [Interview explanations](docs/interview-explanation.md)
 - [Verification report](docs/verification.md)
+- [Build notes and open decisions](docs/build-notes.md)
 
 ## Troubleshooting
 

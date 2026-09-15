@@ -1,10 +1,10 @@
 # Verification report
 
-Verified on September 14, 2026. No final two-person demo, production execution, or load-test claim is made for Milestone 0.
+Local checks passed on September 14, 2026. The first complete GitHub Actions run passed on September 15, 2026. No final two-person demo, production execution, or load-test claim is made for Milestone 0.
 
 ## Environment
 
-Node 24 on Windows. Docker Desktop was not present on the authoring machine. Local migration/constraint tests therefore use PostgreSQL WASM; GitHub Actions is configured to repeat SQL tests on PostgreSQL.
+Node 24 on Windows for local checks and Ubuntu for GitHub Actions. Docker Desktop was not present on the authoring machine. Local migration/constraint tests therefore use PostgreSQL WASM; GitHub Actions repeated SQL tests against PostgreSQL 17.9 in a service container.
 
 ## Scope
 
@@ -26,10 +26,13 @@ Node 24 runs the standalone TypeScript infrastructure scripts directly. This avo
 
 ## Not yet verified
 
-- Docker Compose startup and the exact container tags: Docker is not installed locally. An actual image pull and startup check remains necessary.
-- GitHub Actions on real PostgreSQL: the workflow is provided, but a passing cloud run is not claimed until observed.
+- Full Docker Compose startup, including Redis and the collaboration image: Docker is not installed locally. The PostgreSQL image was pulled and started successfully in CI, but that does not verify the full Compose stack.
 - Real Clerk sessions, authenticated shared editing, sandbox execution, and performance targets: these features belong to later milestones.
 
 ## External dependencies not configured
 
 Clerk development credentials, separate sandbox API, and Docker runtime. Authentication, collaboration, execution and production deployment are later milestones.
+
+## Published source and CI
+
+All 71 published files matched the local Git blob hashes after upload. [The first complete CI run](https://github.com/v4nkat/paircode/actions/runs/34990604498) passed dependency installation, formatting, lint, strict type checking, unit and PostgreSQL integration tests, the production build, and the Chromium browser smoke test. This report was then updated with that result; application code was unchanged.

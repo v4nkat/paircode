@@ -1,0 +1,13 @@
+{
+  "name": "@paircode/queue",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "bullmq": "6.3.6",
+    "ioredis": "6.0.0"
+  }
+}

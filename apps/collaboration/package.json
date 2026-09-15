@@ -1,0 +1,16 @@
+{
+  "name": "@paircode/collaboration",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.ts",
+    "start": "node src/server.ts"
+  },
+  "dependencies": {
+    "yjs": "13.6.32",
+    "@y/websocket-server": "0.1.5",
+    "tsx": "4.23.13",
+    "@paircode/config": "workspace:*"
+  }
+}

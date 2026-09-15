@@ -1,0 +1,235 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoomStatus {
+  ACTIVE
+  ENDED
+}
+
+enum MemberRole {
+  OWNER
+  PARTICIPANT
+}
+
+enum Visibility {
+  VISIBLE
+  HIDDEN
+}
+
+enum ExecutionStatus {
+  QUEUED
+  RUNNING
+  PASSED
+  FAILED
+  ERROR
+}
+
+enum ErrorCategory {
+  WRONG_ANSWER
+  TIMEOUT
+  MEMORY_LIMIT
+  RUNTIME_ERROR
+  COMPILE_ERROR
+  QUEUE_FAILURE
+  SANDBOX_UNAVAILABLE
+  WORKER_FAILURE
+  INTERNAL_ERROR
+}
+
+enum DispatchState {
+  PENDING
+  ENQUEUED
+}
+
+enum SnapshotReason {
+  CHECKPOINT
+  EXECUTION
+  SESSION_END
+}
+
+enum RoomEventType {
+  CREATED
+  JOINED
+  LEFT
+  ENDED
+  PROBLEM_CHANGED
+  EXECUTION_QUEUED
+  EXECUTION_COMPLETED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  clerkId      String   @unique @db.VarChar(255)
+  displayName  String   @db.VarChar(100)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+  ownedRooms   Room[]
+  memberships  RoomMember[]
+  snapshots    CodeSnapshot[]
+  executions   Execution[]
+  events       RoomEvent[]
+}
+
+model Room {
+  id                  String     @id @default(uuid()) @db.Uuid
+  ownerId             String     @db.Uuid
+  title               String     @db.VarChar(100)
+  selectedProblemId   String     @db.Uuid
+  selectionRevision   Int        @default(0)
+  status              RoomStatus @default(ACTIVE)
+  inviteTokenHash     String?    @unique @db.Char(64)
+  inviteExpiresAt     DateTime?  @db.Timestamptz(3)
+  createdAt           DateTime   @default(now()) @db.Timestamptz(3)
+  endedAt             DateTime?  @db.Timestamptz(3)
+  owner               User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  selectedProblem     Problem    @relation(fields: [selectedProblemId], references: [id], onDelete: Restrict)
+  members             RoomMember[]
+  document            RoomDocument?
+  snapshots           CodeSnapshot[]
+  executions          Execution[]
+  events              RoomEvent[]
+  @@index([ownerId, createdAt, id])
+}
+
+model RoomMember {
+  roomId     String     @db.Uuid
+  userId     String     @db.Uuid
+  seat       Int
+  role       MemberRole
+  joinedAt   DateTime   @default(now()) @db.Timestamptz(3)
+  leftAt     DateTime?  @db.Timestamptz(3)
+  lastSeenAt DateTime?  @db.Timestamptz(3)
+  room       Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([roomId, userId])
+  @@unique([roomId, seat])
+  @@index([userId, joinedAt])
+}
+
+model Problem {
+  id                String    @id @default(uuid()) @db.Uuid
+  slug              String    @db.VarChar(100)
+  version           Int
+  title             String    @db.VarChar(150)
+  promptMarkdown    String
+  language          String    @db.VarChar(20)
+  starterCode       String
+  functionSignature String
+  constraints       String
+  comparator        String    @db.VarChar(60)
+  createdAt         DateTime  @default(now()) @db.Timestamptz(3)
+  tests             TestCase[]
+  selectedByRooms   Room[]
+  snapshots         CodeSnapshot[]
+  executions        Execution[]
+  @@unique([slug, version])
+}
+
+model TestCase {
+  id             String     @id @default(uuid()) @db.Uuid
+  problemId      String     @db.Uuid
+  visibility     Visibility
+  input          Json       @db.JsonB
+  expectedOutput Json       @db.JsonB
+  ordering       Int
+  problem        Problem    @relation(fields: [problemId], references: [id], onDelete: Restrict)
+  results        ExecutionTestResult[]
+  @@unique([problemId, ordering])
+  @@unique([id, problemId])
+}
+
+model RoomDocument {
+  roomId     String   @id @db.Uuid
+  state      Bytes    @db.ByteA
+  revision   Int      @default(0)
+  savedAt    DateTime @default(now()) @db.Timestamptz(3)
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model CodeSnapshot {
+  id          String         @id @default(uuid()) @db.Uuid
+  roomId      String         @db.Uuid
+  problemId   String         @db.Uuid
+  language    String         @db.VarChar(20)
+  sourceCode  String
+  sourceHash  String         @db.Char(64)
+  createdById String?        @db.Uuid
+  reason      SnapshotReason
+  createdAt   DateTime       @default(now()) @db.Timestamptz(3)
+  room        Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  problem     Problem        @relation(fields: [problemId], references: [id], onDelete: Restrict)
+  createdBy   User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  executions  Execution[]
+  @@unique([id, roomId, problemId])
+  @@index([roomId, createdAt, id])
+  @@index([problemId])
+}
+
+model Execution {
+  id               String          @id @default(uuid()) @db.Uuid
+  roomId           String          @db.Uuid
+  requestedById    String          @db.Uuid
+  codeSnapshotId   String          @db.Uuid
+  problemId        String          @db.Uuid
+  language         String          @db.VarChar(20)
+  status           ExecutionStatus @default(QUEUED)
+  errorCategory    ErrorCategory?
+  dispatchState    DispatchState   @default(PENDING)
+  idempotencyKey   String          @db.VarChar(128)
+  requestHash      String          @db.Char(64)
+  queueJobId       String?         @unique @db.VarChar(128)
+  attemptCount     Int             @default(0)
+  leaseToken       String?         @db.Uuid
+  leaseExpiresAt   DateTime?       @db.Timestamptz(3)
+  queuedAt         DateTime        @default(now()) @db.Timestamptz(3)
+  startedAt        DateTime?       @db.Timestamptz(3)
+  completedAt      DateTime?       @db.Timestamptz(3)
+  durationMs       Int?
+  room             Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  requestedBy      User            @relation(fields: [requestedById], references: [id], onDelete: Restrict)
+  snapshot         CodeSnapshot    @relation(fields: [codeSnapshotId], references: [id], onDelete: Cascade)
+  problem          Problem         @relation(fields: [problemId], references: [id], onDelete: Restrict)
+  results          ExecutionTestResult[]
+  @@unique([roomId, requestedById, idempotencyKey])
+  @@unique([id, problemId])
+  @@index([roomId, queuedAt, id])
+  @@index([dispatchState, status, queuedAt])
+  @@index([status, leaseExpiresAt])
+}
+
+model ExecutionTestResult {
+  id             String    @id @default(uuid()) @db.Uuid
+  executionId    String    @db.Uuid
+  testCaseId     String    @db.Uuid
+  problemId      String    @db.Uuid
+  passed         Boolean?
+  durationMs     Int?
+  memoryKb       Int?
+  outputPreview  String?   @db.VarChar(8192)
+  errorPreview   String?   @db.VarChar(2048)
+  sandboxToken   String?   @db.VarChar(255)
+  submissionState String  @default("PENDING") @db.VarChar(32)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
+  execution      Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  testCase       TestCase  @relation(fields: [testCaseId], references: [id], onDelete: Restrict)
+  @@unique([executionId, testCaseId])
+}
+
+model RoomEvent {
+  id               String        @id @default(uuid()) @db.Uuid
+  roomId           String        @db.Uuid
+  actorId          String?       @db.Uuid
+  eventType        RoomEventType
+  metadataJson     Json          @default("{}") @db.JsonB
+  deduplicationKey String?       @unique @db.VarChar(255)
+  createdAt        DateTime      @default(now()) @db.Timestamptz(3)
+  room             Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  actor            User?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  @@index([roomId, createdAt, id])
+}

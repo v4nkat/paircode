@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
   poweredByHeader: false,
-  transpilePackages: ['@paircode/contracts'],
+  transpilePackages: ['@paircode/contracts', '@paircode/database'],
   async headers() {
     return [
       {

@@ -4,7 +4,7 @@
 
 PairCode is a collaborative coding interview practice platform being built in public. The planned experience combines a shared Monaco editor, cursor presence, isolated Python test execution, and a reviewable session history.
 
-> **Current release: Milestone 0 — foundation.** The landing page, strict TypeScript workspace, database schema/migration, validation contracts, test catalog, and foundation tests are implemented. Authentication, interview rooms, collaboration, and code execution are not yet available. The editor on the landing page is a labeled illustration.
+> **Current work: Milestone 1 — identity and rooms.** The foundation and room workflow are implemented, including Clerk integration, a dashboard, hashed invitations, transactional joining, and owner controls. Live Clerk sign-in still needs configuration and a two-account verification. Shared editing and code execution are not available yet. The editor on the landing page is a labeled illustration.
 
 ![PairCode foundation page with an illustrated editor and an explicit implementation roadmap](docs/assets/foundation-preview.png)
 
@@ -40,6 +40,8 @@ pnpm dev
 ```
 
 Open **http://localhost:3000**. The foundation page requires no authentication credentials and never executes submitted code.
+
+To use rooms, follow [the sign-in and database setup guide](docs/auth-setup.md). Next.js needs its own `apps/web/.env.local`; the root `.env` is used by migration and Compose commands. Open the app at the exact configured `APP_ORIGIN` when creating or joining rooms.
 
 ## Start the development services
 

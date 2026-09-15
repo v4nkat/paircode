@@ -80,6 +80,9 @@ importers:
       '@paircode/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@paircode/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@tailwindcss/postcss':
         specifier: 4.3.3
         version: 4.3.3

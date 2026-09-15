@@ -21,3 +21,11 @@ These are small fixes, but they are more useful evidence than a screenshot alone
 ## Next thing to prove
 
 Two people opening the same invitation at the same time must not take the same seat. Milestone 1 needs a real concurrency test around the join transaction, alongside tests for invalid invitations and non-member access. A successful landing-page build does not answer those questions.
+
+## Rooms: the less obvious parts
+
+The join transaction now locks the room before checking membership. That same lock is used when ending the room or rotating its invitation. Repeated joins return the existing membership instead of adding a second event.
+
+The invitation lives in a URL fragment, not a query parameter. This keeps it out of the initial HTTP request and ordinary access logs. It still grants a seat, so the UI explains what sharing it means.
+
+The service tests use real SQL even when running locally against PostgreSQL WASM. The competing-join test deliberately runs only with a PostgreSQL connection string; a single in-memory connection cannot establish that separate transactions coordinate correctly.

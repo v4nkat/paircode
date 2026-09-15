@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const roomIdSchema = z.uuid();
+
 export const languageSchema = z.literal('python');
 export const executionStatusSchema = z.enum(['QUEUED', 'RUNNING', 'PASSED', 'FAILED', 'ERROR']);
 export type ExecutionStatus = z.infer<typeof executionStatusSchema>;

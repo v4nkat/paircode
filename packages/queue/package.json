@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./tickets": "./src/tickets.ts"
   },
   "dependencies": {
     "bullmq": "6.3.6",
+    "@paircode/contracts": "workspace:*",
     "ioredis": "6.0.0"
   }
 }

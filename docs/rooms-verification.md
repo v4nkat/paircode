@@ -13,6 +13,6 @@ September 15, 2026. This report covers room creation and membership, not collabo
 
 ## Remaining verification
 
-The checked-in CI workflow will run the competing-join test on independent PostgreSQL connections. A passing run must be observed before claiming that result.
+The [September 15 CI run](https://github.com/v4nkat/paircode/actions/runs/35022012045) passed, including the competing-join test on independent PostgreSQL connections. PR #1 was merged on September 16.
 
 Live Clerk sign-in and the complete two-account browser workflow require development credentials and a configured database. The manual checklist is in [auth-setup.md](auth-setup.md). The tests inject authentication into the HTTP handler in test code; the running application has no test-user or authentication-bypass flag.

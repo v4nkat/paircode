@@ -1,0 +1,65 @@
+.shell {
+  margin-top: 1.5rem;
+  border: 1px solid #384b40;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #1e1e1e;
+  color: #e4e9e2;
+}
+.toolbar,
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.2rem;
+  font-size: 0.8rem;
+}
+.toolbar {
+  background: #24372d;
+}
+.presence {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 1.2rem;
+  color: #c6cfc7;
+  font-size: 0.8rem;
+}
+.presence span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.presence i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.editor {
+  height: 480px;
+}
+.footer {
+  color: #c6cfc7;
+  align-items: center;
+  border-top: 1px solid #3d433e;
+}
+.footer div {
+  display: flex;
+  gap: 0.6rem;
+}
+.footer button {
+  background: transparent;
+  color: #e4e9e2;
+  border: 1px solid #647366;
+  border-radius: 5px;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+.footer button:focus-visible {
+  outline: 3px solid #d9ac59;
+}
+.error {
+  padding: 0.7rem 1.2rem;
+  color: #ffcebd;
+}

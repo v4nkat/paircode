@@ -2,8 +2,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { UserButton } from '@clerk/nextjs';
+import dynamic from 'next/dynamic';
 import { RoomShell } from './room-shell';
 import styles from './rooms.module.css';
+const SharedEditor = dynamic(() => import('./shared-editor'), {
+  ssr: false,
+  loading: () => <p role="status">Loading editor…</p>,
+});
 
 type Summary = { id: string; title: string; status: 'ACTIVE' | 'ENDED'; createdAt: string };
 type Rooms = { rooms: Summary[]; nextCursor: string | null };
@@ -19,6 +24,7 @@ type Detail = {
   members: { userId: string; displayName: string; role: string }[];
   problem: Problem;
   isOwner: boolean;
+  savedCode: string | null;
 };
 type Invitation = { roomId: string; inviteToken: string; expiresAt: string };
 export async function roomRequest<T>(path: string, payload?: unknown, method = 'GET'): Promise<T> {
@@ -131,8 +137,7 @@ export function Dashboard() {
       </div>
       <h1>Pick up where you left off.</h1>
       <p className={styles.muted}>
-        A room keeps the problem and your partner together. Shared editing comes in the next
-        milestone.
+        A shared editor, one problem, and a partner to think out loud with.
       </p>
       {error && (
         <p role="alert" className={styles.error}>
@@ -296,17 +301,13 @@ export function RoomPage({ roomId }: { roomId: string }) {
           {invite && <InviteCard invite={invite} />}
           <div className={styles.grid}>
             <section className={styles.panel}>
-              <p className={styles.eyebrow}>PYTHON · STARTER CODE</p>
+              <p className={styles.eyebrow}>PYTHON · PRACTICE PROBLEM</p>
               <h2>{detail.problem.title}</h2>
               <p style={{ whiteSpace: 'pre-wrap' }}>{detail.problem.promptMarkdown}</p>
               <p className={styles.muted}>{detail.problem.constraints}</p>
               <pre className={styles.code}>
-                <code>{detail.problem.starterCode}</code>
+                <code>{detail.savedCode ?? detail.problem.starterCode}</code>
               </pre>
-              <p className={styles.muted}>
-                This is the problem preview. Live editing and running tests are not available in
-                this release.
-              </p>
             </section>
             <aside className={styles.panel}>
               <h2>Room details</h2>
@@ -333,8 +334,8 @@ export function RoomPage({ roomId }: { roomId: string }) {
                   {confirmEnd ? (
                     <div className={styles.notice}>
                       <p>
-                        End this room? Your partner will keep access to the problem preview, but
-                        invitations will stop working.
+                        End this room? Check that both editors say Saved first. The saved code stays
+                        available to both of you, and invitations stop working.
                       </p>
                       <div className={styles.actions}>
                         <button
@@ -362,6 +363,9 @@ export function RoomPage({ roomId }: { roomId: string }) {
               )}
             </aside>
           </div>
+          {detail.room.status === 'ACTIVE' && (
+            <SharedEditor roomId={roomId} problemId={detail.problem.id} />
+          )}
         </>
       )}
     </RoomShell>

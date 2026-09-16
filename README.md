@@ -4,7 +4,7 @@
 
 PairCode is a collaborative coding interview practice platform being built in public. The planned experience combines a shared Monaco editor, cursor presence, isolated Python test execution, and a reviewable session history.
 
-> **Current work: Milestone 1 — identity and rooms.** The foundation and room workflow are implemented, including Clerk integration, a dashboard, hashed invitations, transactional joining, and owner controls. Live Clerk sign-in still needs configuration and a two-account verification. Shared editing and code execution are not available yet. The editor on the landing page is a labeled illustration.
+> **Current work: Milestone 2 — shared editing.** Rooms, authenticated Yjs connections, Monaco editing, remote cursors, reconnects, and saved document state are implemented. Two-browser editor tests pass. Live Clerk sign-in still needs configuration and a two-account verification. Python execution is next. The editor on the landing page is a labeled illustration.
 
 ![PairCode foundation page with an illustrated editor and an explicit implementation roadmap](docs/assets/foundation-preview.png)
 
@@ -41,23 +41,23 @@ pnpm dev
 
 Open **http://localhost:3000**. The foundation page requires no authentication credentials and never executes submitted code.
 
-To use rooms, follow [the sign-in and database setup guide](docs/auth-setup.md). Next.js needs its own `apps/web/.env.local`; the root `.env` is used by migration and Compose commands. Open the app at the exact configured `APP_ORIGIN` when creating or joining rooms.
+For shared editing, see [collaboration setup and verification](docs/collaboration.md). To use rooms, follow [the sign-in and database setup guide](docs/auth-setup.md). Next.js needs its own `apps/web/.env.local`; the root `.env` is used by migration and Compose commands. Open the app at the exact configured `APP_ORIGIN` when creating or joining rooms.
 
 ## Start the development services
 
-Install Docker Desktop with Linux containers. Copy `.env.example` to `.env`, set a random **local-only** `POSTGRES_PASSWORD`, and put the same password in `DATABASE_URL`. The checked-in values are placeholders, not usable production credentials.
+Install Docker Desktop with Linux containers. Copy `.env.example` to `.env`, set a random **local-only** `POSTGRES_PASSWORD`, and put the same URL-encoded password in `DATABASE_URL`. Set a generated `COLLABORATION_CONTROL_SECRET` as described in the collaboration guide. The checked-in values are placeholders, not usable production credentials.
 
 ```bash
 docker compose --env-file .env -f infra/compose.yaml config
-docker compose --env-file .env -f infra/compose.yaml up --build -d
+docker compose --env-file .env -f infra/compose.yaml up -d postgres redis
 pnpm env:check
 pnpm db:migrate
 pnpm db:seed
 ```
 
-Ports are bound to loopback. PostgreSQL and Redis use named volumes. The collaboration health endpoint is **http://localhost:1234/healthz**. It reports `collaborationReady: false` and rejects WebSocket upgrades until authenticated collaboration is implemented.
+Ports are bound to loopback. PostgreSQL and Redis use named volumes. The collaboration health endpoint is **http://localhost:1234/healthz**. It reports relay readiness. WebSocket upgrades require a short-lived ticket from the authenticated room API.
 
-The execution worker deliberately exits with a clear message in Milestone 0. It does not consume or run untrusted jobs. Do not expose this development Compose stack publicly.
+The execution worker remains unavailable until Milestone 3. It does not consume or run untrusted jobs. Do not expose this development Compose stack publicly.
 
 Stop services without deleting data:
 
@@ -78,21 +78,21 @@ pnpm test:e2e
 
 Never point `TEST_DATABASE_URL` at a production database. The test creates and removes its own randomly named schema.
 
-Foundation checks do not establish that the future auth, CRDT, queue, or sandbox integration works. `pnpm test:performance` currently exits with an explanation rather than printing invented benchmark results.
+See [the collaboration report](docs/collaboration.md) for what transport, persistence, and browser tests establish and what still needs live service verification. `pnpm test:performance` currently exits with an explanation rather than printing invented benchmark results.
 
 ## Repository map
 
 | Path                       | Responsibility                                                               |
 | -------------------------- | ---------------------------------------------------------------------------- |
 | `apps/web`                 | Next.js application and landing page                                         |
-| `apps/collaboration`       | Service lifecycle foundation; authenticated Yjs follows in Milestone 2       |
+| `apps/collaboration`       | Authenticated Yjs relay, presence validation, and debounced persistence      |
 | `apps/worker`              | Reserved execution worker entry point; implementation follows in Milestone 3 |
 | `packages/contracts`       | Validated public input shapes and safe result projections                    |
 | `packages/config`          | Validated per-process environment contracts and application limits           |
 | `packages/database`        | Prisma schema, reviewed SQL migration, database adapter, versioned seed      |
 | `packages/problem-catalog` | Server-side problem definitions and test fixtures                            |
 | `packages/queue`           | Execution job contract and bounded retry policy                              |
-| `tests`                    | Unit, SQL integration, and foundation browser tests                          |
+| `tests`                    | Unit, SQL integration, WebSocket, and browser tests                          |
 | `infra`                    | Local Compose and collaboration container                                    |
 
 ## Read the engineering decisions

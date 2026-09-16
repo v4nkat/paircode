@@ -2,9 +2,9 @@
 
 ## Current state
 
-Milestone 0 is a public foundation preview. It has no submission endpoint, no authentication flow, no open Yjs relay, and no execution consumer. The collaboration health process refuses WebSocket upgrades. The worker exits rather than pretend to execute jobs.
+Rooms use Clerk, membership-scoped APIs, hashed invitations, and transactional joining. Shared editing uses single-use connection tickets, origin and membership checks, validated presence, bounded updates, and persisted document state. See [collaboration controls and limits](docs/collaboration.md). There is no execution consumer or submission endpoint yet.
 
-Do not treat the project as a production code runner. The following controls are requirements for later milestones, not claims of completed implementation.
+Do not treat the project as a production code runner. The table below includes both implemented room/editor controls and requirements for the future execution pipeline.
 
 ## Assets and trust boundaries
 

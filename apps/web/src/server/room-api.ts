@@ -1,5 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { createRoomSchema, joinRoomSchema, roomIdSchema } from '@paircode/contracts';
+import {
+  collaborationRequestSchema,
+  createRoomSchema,
+  joinRoomSchema,
+  roomIdSchema,
+} from '@paircode/contracts';
 import { RoomError } from '@paircode/database/rooms';
 import type { RoomService } from '@paircode/database/rooms';
 
@@ -36,6 +41,8 @@ export function createRoomApi(deps: {
   service: () => RoomService;
   authenticate: () => Promise<string | null>;
   origin: () => string | undefined;
+  collaborationTicket?: (userId: string, roomId: string, clientId: number) => Promise<unknown>;
+  endRoom?: (userId: string, roomId: string) => Promise<unknown>;
 }) {
   return async (request: Request, segments: string[]) => {
     const requestId = randomUUID();
@@ -89,8 +96,19 @@ export function createRoomApi(deps: {
           output = await service.detail(userId, id.data);
         else if (segments.length === 2 && segments[1] === 'invite' && request.method === 'POST')
           output = await service.rotateInvite(userId, id.data);
-        else if (segments.length === 2 && segments[1] === 'end' && request.method === 'POST')
-          output = await service.end(userId, id.data);
+        else if (
+          segments.length === 2 &&
+          segments[1] === 'collaboration-ticket' &&
+          request.method === 'POST'
+        ) {
+          const parsed = collaborationRequestSchema.safeParse(await body(request));
+          if (!parsed.success)
+            throw new RoomError(422, 'INVALID_CLIENT', 'Reload the editor and try again.');
+          if (!deps.collaborationTicket)
+            throw new RoomError(503, 'NOT_CONFIGURED', 'Shared editing is not configured yet.');
+          output = await deps.collaborationTicket(userId, id.data, parsed.data.clientId);
+        } else if (segments.length === 2 && segments[1] === 'end' && request.method === 'POST')
+          output = await (deps.endRoom ?? service.end)(userId, id.data);
         else throw new RoomError(404, 'NOT_FOUND', 'This action is not available.');
       }
       return Response.json(output, { status, headers });

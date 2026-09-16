@@ -4,13 +4,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/server.ts",
-    "start": "node src/server.ts"
+    "dev": "node --env-file-if-exists=../../.env --import tsx --watch src/server.ts",
+    "start": "node --import tsx src/server.ts"
   },
   "dependencies": {
     "yjs": "13.6.32",
-    "@y/websocket-server": "0.1.5",
+    "y-protocols": "1.0.7",
+    "lib0": "0.2.117",
+    "ws": "8.21.3",
+    "ioredis": "6.0.0",
+    "pg": "8.23.0",
+    "@paircode/database": "workspace:*",
+    "@paircode/queue": "workspace:*",
+    "@paircode/contracts": "workspace:*",
     "tsx": "4.23.13",
     "@paircode/config": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/ws": "8.18.1",
+    "@types/pg": "8.23.1"
   }
 }

@@ -30,6 +30,15 @@ services:
     environment:
       COLLABORATION_HOST: 0.0.0.0
       COLLABORATION_PORT: 1234
+      DATABASE_URL: postgresql://${POSTGRES_USER:-paircode}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-paircode}
+      REDIS_URL: redis://redis:6379
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:3000}
+      COLLABORATION_CONTROL_SECRET: ${COLLABORATION_CONTROL_SECRET:?Set a random control secret in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     ports: ['127.0.0.1:1234:1234']
     read_only: true
     tmpfs: ['/tmp']

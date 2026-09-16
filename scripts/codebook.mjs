@@ -32,7 +32,7 @@ async function walk(directory) {
 }
 await walk(root);
 let output =
-  '# Milestone 0 source walkthrough\n\nComplete source files and verification commands. Generated dependency files and secrets are excluded.\n\n';
+  '# PairCode source walkthrough\n\nComplete source files and verification commands. Generated dependency files and secrets are excluded.\n\n';
 for (const file of files.sort()) {
   const relative = path.relative(root, file).replaceAll('\\', '/');
   const command = relative.includes('tests/e2e')
@@ -62,9 +62,9 @@ function purpose(file) {
   if (file.includes('problem-catalog'))
     return 'Define versioned server-side development problems and tests.';
   if (file.includes('apps/web'))
-    return 'Render or configure the public foundation preview without claiming future features are available.';
+    return 'Render the application UI or implement authenticated room and collaboration HTTP boundaries.';
   if (file.includes('collaboration'))
-    return 'Configure or run the collaboration lifecycle foundation with WebSocket access closed.';
+    return 'Authorize Yjs connections, validate presence, and persist shared documents.';
   if (file.includes('worker'))
     return 'Reserve the execution boundary and refuse job consumption until a sandbox is integrated.';
   if (file.includes('database'))
@@ -72,5 +72,5 @@ function purpose(file) {
   return 'Configure, validate, or document the repository foundation and its verification workflow.';
 }
 await mkdir('.codebook', { recursive: true });
-await writeFile('.codebook/milestone-0-source.md', output);
-console.log('Wrote .codebook/milestone-0-source.md');
+await writeFile('.codebook/paircode-source.md', output);
+console.log('Wrote .codebook/paircode-source.md');

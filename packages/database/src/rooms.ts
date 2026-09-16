@@ -186,7 +186,22 @@ export function createRoomService(store: RoomStore) {
           [room.selectedProblemId],
         )
       ).rows[0];
-      return { room, members, problem, isOwner: room.ownerId === userId };
+      const snapshot =
+        room.status === 'ENDED'
+          ? (
+              await store.query<{ sourceCode: string }>(
+                'SELECT "sourceCode" FROM "CodeSnapshot" WHERE "roomId"=$1 AND "problemId"=$2 ORDER BY "createdAt" DESC,id DESC LIMIT 1',
+                [roomId, room.selectedProblemId],
+              )
+            ).rows[0]
+          : undefined;
+      return {
+        room,
+        members,
+        problem,
+        savedCode: snapshot?.sourceCode ?? null,
+        isOwner: room.ownerId === userId,
+      };
     },
     async rotateInvite(userId: string, roomId: string) {
       const invite = newInvite();

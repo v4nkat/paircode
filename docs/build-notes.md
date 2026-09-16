@@ -29,3 +29,11 @@ The join transaction now locks the room before checking membership. That same lo
 The invitation lives in a URL fragment, not a query parameter. This keeps it out of the initial HTTP request and ordinary access logs. It still grants a seat, so the UI explains what sharing it means.
 
 The service tests use real SQL even when running locally against PostgreSQL WASM. The competing-join test deliberately runs only with a PostgreSQL connection string; a single in-memory connection cannot establish that separate transactions coordinate correctly.
+
+## Collaboration: what the browser test caught
+
+The transport tests first failed because y-websocket forwards awareness updates for other clients. Rejecting those forwarded entries disconnected valid users. The relay now ignores them and accepts only the presence ID authorized for that socket.
+
+A second bug only appeared with Monaco running in two browsers. Converting cursor positions to the compact JSON form removed null fields that y-monaco expects. Keeping the full relative-position shape fixed cursor rendering. The browser test now types in both windows, checks a remote cursor, reloads, and fails on page errors.
+
+Reconnects can arrive before the old socket finishes closing. A fresh ticket from the same user can replace that user's stale socket without duplicating the starter document or discarding offline edits. The remaining tradeoff is explicit: unsaved edits survive in the tab, not across closing the browser.

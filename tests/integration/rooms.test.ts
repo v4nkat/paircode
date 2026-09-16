@@ -6,6 +6,8 @@ import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import { createRoomService, inviteHash } from '../../packages/database/src/rooms.js';
 import type { RoomStore, Sql } from '../../packages/database/src/rooms.js';
 import { createRoomApi } from '../../apps/web/src/server/room-api.js';
+import { documentRepository } from '../../apps/collaboration/src/repository.js';
+import * as Y from 'yjs';
 
 let memory: PGlite | undefined;
 let pool: pg.Pool | undefined;
@@ -240,5 +242,56 @@ describe('room HTTP boundary', () => {
     expect(await forbidden.json()).toMatchObject({
       error: { code: 'ROOM_NOT_FOUND', requestId: expect.any(String) },
     });
+  });
+});
+
+describe('collaboration persistence', () => {
+  it('restores Yjs state and atomically saves the final snapshot while revoking editing access', async () => {
+    const f = await fixture();
+    await service.join(f.guest, f.inviteToken);
+    const repository = documentRepository(store);
+    expect(await repository.canAccess(f.roomId, f.owner)).toBe(true);
+    expect(await repository.canAccess(f.roomId, f.outsider)).toBe(false);
+    const initial = await repository.load(f.roomId);
+    expect(initial.state).toBeNull();
+    const doc = new Y.Doc();
+    doc.getText(problemId).insert(0, '# persisted\npass');
+    const state = Y.encodeStateAsUpdate(doc);
+    const sources = { [problemId]: doc.getText(problemId).toString() };
+    await repository.save(f.roomId, state, sources);
+    await repository.save(f.roomId, state, sources);
+    const restored = new Y.Doc();
+    Y.applyUpdate(restored, (await repository.load(f.roomId)).state!);
+    expect(restored.getText(problemId).toString()).toBe(sources[problemId]);
+    expect(
+      (await store.query('SELECT id FROM "CodeSnapshot" WHERE "roomId"=$1', [f.roomId])).rows,
+    ).toHaveLength(1);
+    await expect(repository.save(f.roomId, state, sources, f.guest)).rejects.toThrow(
+      'Owner required',
+    );
+    expect((await service.detail(f.owner, f.roomId)).room.status).toBe('ACTIVE');
+    await repository.save(f.roomId, state, sources, f.owner);
+    await repository.save(f.roomId, state, sources, f.owner);
+    expect(await repository.canAccess(f.roomId, f.owner)).toBe(false);
+    expect((await service.detail(f.guest, f.roomId)).room.status).toBe('ENDED');
+    const final = await store.query<{ sourceCode: string }>(
+      'SELECT "sourceCode" FROM "CodeSnapshot" WHERE "roomId"=$1 AND reason=\'SESSION_END\'',
+      [f.roomId],
+    );
+    expect(final.rows).toEqual([{ sourceCode: sources[problemId] }]);
+    await expect(repository.save(f.roomId, state, sources)).rejects.toThrow('Room unavailable');
+    await expect(service.join(f.outsider, f.inviteToken)).rejects.toMatchObject({
+      code: 'INVALID_INVITE',
+    });
+    doc.destroy();
+    restored.destroy();
+  });
+  it('rolls back document state when the selected draft is absent', async () => {
+    const f = await fixture();
+    const repository = documentRepository(store);
+    await expect(repository.save(f.roomId, new Uint8Array([0, 0]), {})).rejects.toThrow(
+      'Missing selected draft',
+    );
+    expect((await repository.load(f.roomId)).state).toBeNull();
   });
 });

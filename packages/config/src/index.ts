@@ -19,6 +19,8 @@ export const webEnvSchema = infrastructureEnvSchema.extend({
   CLERK_SECRET_KEY: z.string().min(1),
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
   NEXT_PUBLIC_COLLABORATION_URL: tcpUrl(['ws:', 'wss:']),
+  COLLABORATION_INTERNAL_URL: tcpUrl(['http:', 'https:']),
+  COLLABORATION_CONTROL_SECRET: z.string().min(32),
 });
 
 export const workerEnvSchema = infrastructureEnvSchema.extend({

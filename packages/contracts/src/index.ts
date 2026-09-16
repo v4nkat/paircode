@@ -1,6 +1,17 @@
 import { z } from 'zod';
 
 export const roomIdSchema = z.uuid();
+export const collaborationRequestSchema = z.strictObject({
+  clientId: z.number().int().min(0).max(4294967295),
+});
+export const collaborationIdentitySchema = z.strictObject({
+  roomId: z.uuid(),
+  userId: z.uuid(),
+  clientId: z.number().int().min(0).max(4294967295),
+  displayName: z.string().min(1).max(100),
+  color: z.enum(['#26724b', '#865cb5']),
+});
+export type CollaborationIdentity = z.infer<typeof collaborationIdentitySchema>;
 
 export const languageSchema = z.literal('python');
 export const executionStatusSchema = z.enum(['QUEUED', 'RUNNING', 'PASSED', 'FAILED', 'ERROR']);

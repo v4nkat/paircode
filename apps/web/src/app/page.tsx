@@ -38,8 +38,7 @@ export default function HomePage() {
         <section className="hero wrap" aria-labelledby="hero-title">
           <div className="hero-copy">
             <p className="eyebrow">
-              <span className="status-dot" aria-hidden="true" /> BUILDING IN PUBLIC · ROOMS &
-              INVITATIONS
+              <span className="status-dot" aria-hidden="true" /> BUILDING IN PUBLIC · SHARED EDITING
             </p>
             <h1 id="hero-title">
               Good code starts
@@ -58,7 +57,7 @@ export default function HomePage() {
                 See what’s next <span aria-hidden="true">↓</span>
               </a>
             </div>
-            <p className="availability">Rooms and invitations. Live editing is coming next.</p>
+            <p className="availability">Rooms and shared editing. Python execution is next.</p>
           </div>
           <div
             className="editor-preview"
@@ -138,12 +137,12 @@ export default function HomePage() {
               <span className="badge">In verification</span>
             </li>
             <li>
-              <span className="milestone-number">02–05</span>
+              <span className="milestone-number">02</span>
               <div>
-                <strong>Collaboration, execution & review</strong>
-                <p>Shared editing, isolated Python tests, history, and benchmarks.</p>
+                <strong>Shared editing</strong>
+                <p>Monaco, remote cursors, reconnects, and saved code.</p>
               </div>
-              <span className="next-label">Planned</span>
+              <span className="next-label">In verification</span>
             </li>
           </ol>
         </section>

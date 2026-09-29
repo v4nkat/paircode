@@ -38,6 +38,11 @@ export const runTestsSchema = z.strictObject({
   selectionRevision: z.number().int().nonnegative(),
 });
 
+export const selectProblemSchema = z.strictObject({
+  problemId: z.uuid(),
+  selectionRevision: z.number().int().nonnegative(),
+});
+
 export const paginationSchema = z.object({
   cursor: z.string().max(512).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),

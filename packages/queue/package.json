@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./tickets": "./src/tickets.ts"
+    "./tickets": "./src/tickets.ts",
+    "./transport": "./src/transport.ts"
   },
   "dependencies": {
     "bullmq": "6.3.6",

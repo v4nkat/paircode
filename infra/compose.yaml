@@ -1,5 +1,29 @@
 name: paircode-dev
 services:
+  worker:
+    profiles: ['execution']
+    build:
+      context: ..
+      dockerfile: infra/docker/worker.Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-paircode}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-paircode}
+      REDIS_URL: redis://redis:6379
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:3000}
+      SANDBOX_API_URL: ${SANDBOX_API_URL:-}
+      SANDBOX_AUTH_TOKEN: ${SANDBOX_AUTH_TOKEN:-}
+      SANDBOX_PYTHON_LANGUAGE_ID: ${SANDBOX_PYTHON_LANGUAGE_ID:-}
+      SANDBOX_CPU_SECONDS: ${SANDBOX_CPU_SECONDS:-2}
+      SANDBOX_WALL_SECONDS: ${SANDBOX_WALL_SECONDS:-10}
+      SANDBOX_MEMORY_KB: ${SANDBOX_MEMORY_KB:-131072}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    read_only: true
+    tmpfs: ['/tmp']
+    cap_drop: ['ALL']
+    security_opt: ['no-new-privileges:true']
   postgres:
     image: postgres:17.9-alpine
     environment:

@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { UserButton } from '@clerk/nextjs';
 import dynamic from 'next/dynamic';
@@ -10,7 +10,13 @@ const SharedEditor = dynamic(() => import('./shared-editor'), {
   loading: () => <p role="status">Loading editor…</p>,
 });
 
-type Summary = { id: string; title: string; status: 'ACTIVE' | 'ENDED'; createdAt: string };
+type Summary = {
+  id: string;
+  title: string;
+  status: 'ACTIVE' | 'ENDED';
+  createdAt: string;
+  selectionRevision: number;
+};
 type Rooms = { rooms: Summary[]; nextCursor: string | null };
 type Problem = {
   id: string;
@@ -25,6 +31,7 @@ type Detail = {
   problem: Problem;
   isOwner: boolean;
   savedCode: string | null;
+  examples: { input: unknown; expectedOutput: unknown }[];
 };
 type Invitation = { roomId: string; inviteToken: string; expiresAt: string };
 export async function roomRequest<T>(path: string, payload?: unknown, method = 'GET'): Promise<T> {
@@ -32,6 +39,7 @@ export async function roomRequest<T>(path: string, payload?: unknown, method = '
     method,
     credentials: 'same-origin',
     cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
     ...(method !== 'GET'
       ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload ?? {}) }
       : {}),
@@ -245,15 +253,32 @@ export function RoomPage({ roomId }: { roomId: string }) {
   const [busy, setBusy] = useState(false);
   const [invite, setInvite] = useState<Invitation | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [catalog, setCatalog] = useState<Pick<Problem, 'id' | 'title'>[]>([]);
+  const [saved, setSaved] = useState(false);
+  const safeToSwitch = useRef(false);
+  const savedChanged = useCallback((value: boolean) => {
+    safeToSwitch.current = value;
+    setSaved(value);
+  }, []);
   const load = useCallback(async () => {
     try {
-      setDetail(await roomRequest<Detail>(`/${roomId}`));
+      const next = await roomRequest<Detail>(`/${roomId}`);
+      setDetail((previous) => {
+        if (previous && previous.problem.id !== next.problem.id && !safeToSwitch.current)
+          return previous;
+        return next;
+      });
     } catch (e) {
       setError(message(e));
     }
   }, [roomId]);
   useEffect(() => {
     void load();
+    void roomRequest<{ problems: Pick<Problem, 'id' | 'title'>[] }>('/problems')
+      .then((data) => setCatalog(data.problems))
+      .catch((e) => setError(message(e)));
+    const timer = setInterval(() => void load(), 3000);
+    return () => clearInterval(timer);
   }, [load]);
   async function action(kind: 'invite' | 'end') {
     setBusy(true);
@@ -289,6 +314,9 @@ export function RoomPage({ roomId }: { roomId: string }) {
             {detail.room.status === 'ACTIVE' ? 'READY FOR YOUR PARTNER' : 'SESSION ENDED'}
           </p>
           <h1>{detail.room.title}</h1>
+          <a className={styles.secondary} href={`/rooms/${roomId}/review`}>
+            Review session history →
+          </a>
           <div className={styles.toolbar}>
             <p>
               {detail.members.map((m) => m.displayName).join(' + ')} · {detail.members.length}/2
@@ -305,12 +333,64 @@ export function RoomPage({ roomId }: { roomId: string }) {
               <h2>{detail.problem.title}</h2>
               <p style={{ whiteSpace: 'pre-wrap' }}>{detail.problem.promptMarkdown}</p>
               <p className={styles.muted}>{detail.problem.constraints}</p>
-              <pre className={styles.code}>
-                <code>{detail.savedCode ?? detail.problem.starterCode}</code>
-              </pre>
+              {detail.examples.map((example, index) => (
+                <div key={index}>
+                  <strong>Example {index + 1}</strong>
+                  <pre className={styles.code}>
+                    Input: {JSON.stringify(example.input)}
+                    {'\n'}Expected: {JSON.stringify(example.expectedOutput)}
+                  </pre>
+                </div>
+              ))}
+              {detail.room.status === 'ENDED' && (
+                <pre className={styles.code}>
+                  <code>{detail.savedCode ?? detail.problem.starterCode}</code>
+                </pre>
+              )}
             </section>
             <aside className={styles.panel}>
               <h2>Room details</h2>
+              {detail.room.status === 'ACTIVE' && (
+                <>
+                  <label htmlFor="active-problem">Practice problem</label>
+                  <select
+                    id="active-problem"
+                    className={styles.input}
+                    value={detail.problem.id}
+                    disabled={busy || !saved}
+                    onChange={async (event) => {
+                      setBusy(true);
+                      setError('');
+                      try {
+                        await roomRequest(
+                          `/${roomId}/problem`,
+                          {
+                            problemId: event.target.value,
+                            selectionRevision: detail.room.selectionRevision,
+                          },
+                          'POST',
+                        );
+                        await load();
+                      } catch (e) {
+                        setError(message(e));
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    {catalog.map((problem) => (
+                      <option key={problem.id} value={problem.id}>
+                        {problem.title}
+                      </option>
+                    ))}
+                  </select>
+                  <p className={styles.muted}>
+                    {saved
+                      ? 'Either partner can switch problems. Each draft is kept.'
+                      : 'Wait for your draft to save before switching problems.'}
+                  </p>
+                </>
+              )}
               <ul className={styles.list}>
                 {detail.members.map((m) => (
                   <li key={m.userId}>
@@ -364,7 +444,14 @@ export function RoomPage({ roomId }: { roomId: string }) {
             </aside>
           </div>
           {detail.room.status === 'ACTIVE' && (
-            <SharedEditor roomId={roomId} problemId={detail.problem.id} />
+            <SharedEditor
+              key={detail.problem.id}
+              roomId={roomId}
+              problemId={detail.problem.id}
+              selectionRevision={detail.room.selectionRevision}
+              executionEnabled
+              onSavedChange={savedChanged}
+            />
           )}
         </>
       )}

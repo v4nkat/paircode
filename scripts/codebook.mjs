@@ -66,7 +66,7 @@ function purpose(file) {
   if (file.includes('collaboration'))
     return 'Authorize Yjs connections, validate presence, and persist shared documents.';
   if (file.includes('worker'))
-    return 'Reserve the execution boundary and refuse job consumption until a sandbox is integrated.';
+    return 'Consume leased execution jobs and submit untrusted code only to the external sandbox.';
   if (file.includes('database'))
     return 'Configure database generation, connection, or immutable catalog seeding.';
   return 'Configure, validate, or document the repository foundation and its verification workflow.';

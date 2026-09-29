@@ -9,6 +9,7 @@ import 'monaco-editor/esm/vs/basic-languages/python/python.contribution.js';
 import { readVarString } from 'lib0/decoding';
 import type { CollaborationIdentity } from '@paircode/contracts';
 import styles from './shared-editor.module.css';
+import { ExecutionPanel } from './execution-panel';
 
 type Ticket = { ticket: string; url: string; identity: CollaborationIdentity };
 type Person = { clientId: number; name: string; color: string };
@@ -18,17 +19,41 @@ const digest = async (source: string) =>
     (b) => b.toString(16).padStart(2, '0'),
   ).join('');
 
-export default function SharedEditor({ roomId, problemId }: { roomId: string; problemId: string }) {
+export default function SharedEditor({
+  roomId,
+  problemId,
+  selectionRevision = 0,
+  executionEnabled = false,
+  onSavedChange,
+}: {
+  roomId: string;
+  problemId: string;
+  selectionRevision?: number;
+  executionEnabled?: boolean;
+  onSavedChange?: (saved: boolean) => void;
+}) {
   const container = useRef<HTMLDivElement>(null);
   const retry = useRef<() => void>(() => {});
   const exportCode = useRef<() => void>(() => {});
+  const source = useRef<() => string>(() => '');
+  const savedCallback = useRef(onSavedChange);
+  savedCallback.current = onSavedChange;
+  const [ready, setReady] = useState(false);
   const [connection, setConnection] = useState('Connecting…');
   const [save, setSave] = useState('Waiting for document');
   const [error, setError] = useState('');
   const [people, setPeople] = useState<Person[]>([]);
 
   useEffect(() => {
+    savedCallback.current?.(connection === 'Live' && save === 'Saved');
+  }, [connection, save]);
+
+  useEffect(() => {
     if (!container.current) return;
+    setReady(false);
+    setSave('Waiting for document');
+    setConnection('Connecting…');
+    savedCallback.current?.(false);
     let disposed = false,
       initialized = false,
       permanent = false,
@@ -55,6 +80,7 @@ export default function SharedEditor({ roomId, problemId }: { roomId: string; pr
     };
     const doc = new Y.Doc();
     const text = doc.getText(problemId);
+    source.current = () => text.toString();
     const model = monaco.editor.createModel('', 'python');
     const editor = monaco.editor.create(container.current, {
       model,
@@ -136,6 +162,7 @@ export default function SharedEditor({ roomId, problemId }: { roomId: string; pr
           provider.on('sync', (synced: boolean) => {
             if (!synced || disposed) return;
             initialized = true;
+            setReady(true);
             attempts = 0;
             setConnection('Live');
             setError('');
@@ -147,6 +174,7 @@ export default function SharedEditor({ roomId, problemId }: { roomId: string; pr
             permanent = event.code >= 4400 && event.code < 4500;
             setConnection(permanent ? 'Connection closed' : 'Offline');
             if (permanent) {
+              setReady(false);
               editor.updateOptions({ readOnly: true });
               setError(
                 event.code === 4403
@@ -223,41 +251,52 @@ export default function SharedEditor({ roomId, problemId }: { roomId: string; pr
   }, [roomId, problemId]);
 
   return (
-    <section className={styles.shell} aria-label="Collaborative editor">
-      <div className={styles.toolbar}>
-        <strong>solution.py</strong>
-        <span role="status">
-          {connection} · {save}
-        </span>
-      </div>
-      <div className={styles.presence} aria-label="Online participants">
-        {people.length
-          ? people.map((p) => (
-              <span key={p.clientId}>
-                <i style={{ background: p.color }} />
-                {p.name}
-              </span>
-            ))
-          : 'Waiting for a connection'}
-      </div>
-      {people.map((p) => (
-        <style
-          key={p.clientId}
-        >{`.yRemoteSelection-${p.clientId}{background:${p.color}33}.yRemoteSelectionHead-${p.clientId}{border-left:2px solid ${p.color}}`}</style>
-      ))}
-      <div className={styles.editor} ref={container} />
-      {error && (
-        <p role="alert" className={styles.error}>
-          {error}
-        </p>
-      )}
-      <div className={styles.footer}>
-        <span>Python · Your partner sees changes as you type</span>
-        <div>
-          <button onClick={() => retry.current()}>Reconnect</button>
-          <button onClick={() => exportCode.current()}>Download code</button>
+    <>
+      <section className={styles.shell} aria-label="Collaborative editor">
+        <div className={styles.toolbar}>
+          <strong>solution.py</strong>
+          <span role="status">
+            {connection} · {save}
+          </span>
         </div>
-      </div>
-    </section>
+        <div className={styles.presence} aria-label="Online participants">
+          {people.length
+            ? people.map((p) => (
+                <span key={p.clientId}>
+                  <i style={{ background: p.color }} />
+                  {p.name}
+                </span>
+              ))
+            : 'Waiting for a connection'}
+        </div>
+        {people.map((p) => (
+          <style
+            key={p.clientId}
+          >{`.yRemoteSelection-${p.clientId}{background:${p.color}33}.yRemoteSelectionHead-${p.clientId}{border-left:2px solid ${p.color}}`}</style>
+        ))}
+        <div className={styles.editor} ref={container} />
+        {error && (
+          <p role="alert" className={styles.error}>
+            {error}
+          </p>
+        )}
+        <div className={styles.footer}>
+          <span>Python · Your partner sees changes as you type</span>
+          <div>
+            <button onClick={() => retry.current()}>Reconnect</button>
+            <button onClick={() => exportCode.current()}>Download code</button>
+          </div>
+        </div>
+      </section>
+      {executionEnabled && (
+        <ExecutionPanel
+          roomId={roomId}
+          problemId={problemId}
+          selectionRevision={selectionRevision}
+          getSource={() => source.current()}
+          ready={ready}
+        />
+      )}
+    </>
   );
 }

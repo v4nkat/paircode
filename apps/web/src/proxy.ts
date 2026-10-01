@@ -16,5 +16,6 @@ export const config = {
     '/sign-in/:path*',
     '/sign-up/:path*',
     '/api/rooms/:path*',
+    '/__clerk/:path*',
   ],
 };

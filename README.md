@@ -4,7 +4,7 @@
 
 PairCode is a collaborative coding interview practice platform being built in public. The application includes a shared Monaco editor, cursor presence, a Python execution pipeline, and a paginated session review. A live two-person deployment still needs service configuration and verification.
 
-> **Current work: demo integration.** Rooms, authenticated Yjs connections, Monaco editing, remote cursors, reconnects, saved document state, problem switching, a queued Python worker, and a review timeline are implemented. The browser checks use controlled test identities and sandbox responses. Live Clerk sign-in, Redis recovery, and Judge0 isolation still need verification. See [execution setup](docs/execution.md). The editor on the landing page is a labeled illustration.
+> **Current work: demo integration.** Rooms, authenticated Yjs connections, Monaco editing, remote cursors, reconnects, saved document state, problem switching, a queued Python worker, and a review timeline are implemented. The browser checks use controlled test identities and sandbox responses. Clerk's development sign-in page now loads with real keys; the full two-account flow, Redis recovery, and Judge0 isolation still need verification. See [execution setup](docs/execution.md). The editor on the landing page is a labeled illustration.
 
 ![PairCode foundation page with an illustrated editor and an explicit implementation roadmap](docs/assets/foundation-preview.png)
 

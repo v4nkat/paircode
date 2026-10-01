@@ -57,6 +57,8 @@ pnpm db:seed
 
 Ports are bound to loopback. PostgreSQL and Redis use named volumes. The collaboration health endpoint is **http://localhost:1234/healthz**. It reports relay readiness. WebSocket upgrades require a short-lived ticket from the authenticated room API.
 
+The web process exposes `/api/health` for liveness and `/api/ready` for database, Redis, relay, and Clerk configuration readiness. Use the latter for deployment traffic checks. It returns 503 while local services or keys are missing. A 200 response does not verify the execution worker or external sandbox; run the checks in the execution guide before advertising Python runs.
+
 The execution worker sends Python submissions to a separately isolated Judge0 service. See [execution setup and verification](docs/execution.md) before enabling runs. Do not expose this development Compose stack publicly.
 
 Stop services without deleting data:

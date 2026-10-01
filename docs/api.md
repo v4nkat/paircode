@@ -1,6 +1,6 @@
 # API plan
 
-Implemented: `GET /api/health`, `GET/POST /api/rooms`, `GET /api/rooms/problems`, `POST /api/rooms/join`, `GET /api/rooms/:id`, `POST /api/rooms/:id/invite`, and `POST /api/rooms/:id/end`. Other routes below are the contract for subsequent milestones. Health reports process health, not database/sandbox readiness.
+Implemented: `GET /api/health`, `GET /api/ready`, `GET/POST /api/rooms`, `GET /api/rooms/problems`, `POST /api/rooms/join`, `GET /api/rooms/:id`, `POST /api/rooms/:id/invite`, and `POST /api/rooms/:id/end`. Other routes below are the contract for subsequent milestones. `/api/health` reports web process liveness. `/api/ready` returns 200 only when database, Redis, collaboration relay, and Clerk configuration checks pass; otherwise it returns 503 with status labels that do not expose credentials. It does not establish that the execution worker or sandbox is healthy.
 
 Create and rotate return `{ roomId, inviteToken, expiresAt }`. The browser builds `/join#token`; the raw token is never stored in the database. Room list pagination uses an optional UUID `cursor` and a fixed page size of 20, returning `{ rooms, nextCursor }`. The problem-list endpoint returns IDs, titles, and slugs only.
 

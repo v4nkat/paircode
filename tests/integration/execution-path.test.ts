@@ -166,7 +166,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL || !process.env.TEST_REDIS_URL)(
           .toBe('PASSED');
 
         const detail = await runs.detail(owner, roomId, run.id);
-        expect(detail.snapshot.sourceCode).toBe(sourceCode);
+        expect(detail.snapshot?.sourceCode).toBe(sourceCode);
         expect(detail.visibleResults).toMatchObject([
           { passed: true, outputPreview: 'visible output' },
         ]);

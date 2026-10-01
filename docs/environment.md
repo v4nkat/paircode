@@ -15,7 +15,9 @@
 | SANDBOX_API_URL, SANDBOX_AUTH_TOKEN                          | Worker only                                           | Server-only                                |
 | SANDBOX_PYTHON_LANGUAGE_ID                                   | Worker only                                           | Read from chosen deployment, never guessed |
 | SANDBOX_CPU_SECONDS, SANDBOX_WALL_SECONDS, SANDBOX_MEMORY_KB | Worker only                                           | Proposed enforced limits                   |
-| TEST_DATABASE_URL                                            | Integration tests                                     | Disposable PostgreSQL only                 |`pnpm env:check` validates infrastructure from the root `.env`. `pnpm env:check web` loads `apps/web/.env.local` first, then fills shared settings from the root `.env`. `pnpm env:check worker` validates worker settings from the root `.env`. Validation errors report field names, not rejected values. The public landing page needs none of these credentials.
+| TEST_DATABASE_URL                                            | Integration tests                                     | Disposable PostgreSQL only                 |
+
+`pnpm env:check` validates infrastructure from the root `.env`. `pnpm env:check web` loads `apps/web/.env.local` first, then fills shared settings from the root `.env`. `pnpm env:check worker` validates worker settings from the root `.env`. Validation errors report field names, not rejected values. The public landing page needs none of these credentials.
 
 Set `PLAYWRIGHT_CHANNEL=chrome` for a local E2E run using installed Chrome. Omit it to use Playwright Chromium, as CI does.
 

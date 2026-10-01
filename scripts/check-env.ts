@@ -6,8 +6,10 @@ import {
   workerEnvSchema,
 } from '@paircode/config';
 
-config({ path: '.env', quiet: true });
 const target = process.argv[2] ?? 'infrastructure';
+// Match the web app's local configuration, then fill shared service settings from the root.
+if (target === 'web') config({ path: 'apps/web/.env.local', quiet: true });
+config({ path: '.env', quiet: true });
 const schemas = {
   infrastructure: infrastructureEnvSchema,
   web: webEnvSchema,

@@ -23,7 +23,11 @@ describe.skipIf(!process.env.TEST_DATABASE_URL || !process.env.TEST_REDIS_URL)(
       let pool: pg.Pool | undefined;
       let queue: ReturnType<typeof executionQueue> | undefined;
       let worker: ReturnType<typeof executionWorker> | undefined;
-      const submitted: { source: string; input: { nums: number[]; target: number }; body: Record<string, unknown> }[] = [];
+      const submitted: {
+        source: string;
+        input: { nums: number[]; target: number };
+        body: Record<string, unknown>;
+      }[] = [];
       const tokens = new Map<string, { nums: number[]; target: number }>();
       const sandboxServer = createServer((request, response) => {
         void (async () => {
@@ -108,7 +112,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL || !process.env.TEST_REDIS_URL)(
         const problemId = randomUUID();
         const hiddenInput = { nums: [3, 2, 4], target: 6 };
         await store.query(
-          'INSERT INTO "Problem" (id,slug,version,title,"promptMarkdown",language,"starterCode","functionSignature",constraints,comparator) VALUES ($1,\'two-sum\',1,\'Two Sum\',\'Find a pair\',\'python\',\'pass\',\'two_sum(nums, target)\',\'Small inputs\',\'UNORDERED_INTEGER_PAIR\')',
+          "INSERT INTO \"Problem\" (id,slug,version,title,\"promptMarkdown\",language,\"starterCode\",\"functionSignature\",constraints,comparator) VALUES ($1,'two-sum',1,'Two Sum','Find a pair','python','pass','two_sum(nums, target)','Small inputs','UNORDERED_INTEGER_PAIR')",
           [problemId],
         );
         await store.query(
@@ -137,7 +141,8 @@ describe.skipIf(!process.env.TEST_DATABASE_URL || !process.env.TEST_REDIS_URL)(
         expect((await runs.detail(owner, roomId, run.id)).execution.status).toBe('QUEUED');
 
         const address = sandboxServer.address();
-        if (!address || typeof address === 'string') throw new Error('Missing mock sandbox listener');
+        if (!address || typeof address === 'string')
+          throw new Error('Missing mock sandbox listener');
         const sandbox = judge0({
           url: `http://127.0.0.1:${address.port}`,
           token: 'test-only-token',

@@ -1,4 +1,4 @@
-/** BullMQ transport will be wired in Milestone 3. No code is executed by this package. */
+/** BullMQ carries execution IDs only. Source code remains in PostgreSQL. */
 export const executionQueueName = 'paircode-executions';
 export interface ExecutionJob {
   executionId: string;

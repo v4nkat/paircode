@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { migrationSql } from '../support/migrations.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import pg from 'pg';
@@ -15,10 +15,7 @@ async function query(sql: string, params: unknown[] = []) {
   return memory.query(sql, params);
 }
 beforeAll(async () => {
-  const migration = await readFile(
-    'packages/database/prisma/migrations/20260914000000_foundation/migration.sql',
-    'utf8',
-  );
+  const migration = await migrationSql();
   if (process.env.TEST_DATABASE_URL) {
     client = new pg.Client({ connectionString: process.env.TEST_DATABASE_URL });
     await client.connect();

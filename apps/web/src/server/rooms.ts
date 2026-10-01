@@ -3,6 +3,7 @@ import { createRoomStore } from '@paircode/database/room-store';
 import { createRoomService, RoomError } from '@paircode/database/rooms';
 import { createRoomApi } from './room-api';
 import { collaborationActions } from './collaboration';
+import { executionActions } from './executions';
 
 let instance: ReturnType<typeof createRoomService> | undefined;
 function service() {
@@ -16,6 +17,7 @@ function service() {
   return instance;
 }
 export const roomApi = createRoomApi({
+  ...executionActions,
   ...collaborationActions(service),
   service,
   origin: () => process.env.APP_ORIGIN,

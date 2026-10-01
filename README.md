@@ -2,9 +2,9 @@
 
 **Practice technical interviews together. Understand every decision.**
 
-PairCode is a collaborative coding interview practice platform being built in public. The planned experience combines a shared Monaco editor, cursor presence, isolated Python test execution, and a reviewable session history.
+PairCode is a collaborative coding interview practice platform being built in public. The application includes a shared Monaco editor, cursor presence, a Python execution pipeline, and a paginated session review. A live two-person deployment still needs service configuration and verification.
 
-> **Current work: Milestone 2 — shared editing.** Rooms, authenticated Yjs connections, Monaco editing, remote cursors, reconnects, and saved document state are implemented. Two-browser editor tests pass. Live Clerk sign-in still needs configuration and a two-account verification. Python execution is next. The editor on the landing page is a labeled illustration.
+> **Current work: demo integration.** Rooms, authenticated Yjs connections, Monaco editing, remote cursors, reconnects, saved document state, problem switching, a queued Python worker, and a review timeline are implemented. The browser checks use controlled test identities and sandbox responses. Live Clerk sign-in, Redis recovery, and Judge0 isolation still need verification. See [execution setup](docs/execution.md). The editor on the landing page is a labeled illustration.
 
 ![PairCode foundation page with an illustrated editor and an explicit implementation roadmap](docs/assets/foundation-preview.png)
 
@@ -57,7 +57,9 @@ pnpm db:seed
 
 Ports are bound to loopback. PostgreSQL and Redis use named volumes. The collaboration health endpoint is **http://localhost:1234/healthz**. It reports relay readiness. WebSocket upgrades require a short-lived ticket from the authenticated room API.
 
-The execution worker remains unavailable until Milestone 3. It does not consume or run untrusted jobs. Do not expose this development Compose stack publicly.
+The web process exposes `/api/health` for liveness and `/api/ready` for database, Redis, relay, and Clerk configuration readiness. Use the latter for deployment traffic checks. It returns 503 while local services or keys are missing. A 200 response does not verify the execution worker or external sandbox; run the checks in the execution guide before advertising Python runs.
+
+The execution worker sends Python submissions to a separately isolated Judge0 service. See [execution setup and verification](docs/execution.md) before enabling runs. Do not expose this development Compose stack publicly.
 
 Stop services without deleting data:
 
@@ -82,18 +84,18 @@ See [the collaboration report](docs/collaboration.md) for what transport, persis
 
 ## Repository map
 
-| Path                       | Responsibility                                                               |
-| -------------------------- | ---------------------------------------------------------------------------- |
-| `apps/web`                 | Next.js application and landing page                                         |
-| `apps/collaboration`       | Authenticated Yjs relay, presence validation, and debounced persistence      |
-| `apps/worker`              | Reserved execution worker entry point; implementation follows in Milestone 3 |
-| `packages/contracts`       | Validated public input shapes and safe result projections                    |
-| `packages/config`          | Validated per-process environment contracts and application limits           |
-| `packages/database`        | Prisma schema, reviewed SQL migration, database adapter, versioned seed      |
-| `packages/problem-catalog` | Server-side problem definitions and test fixtures                            |
-| `packages/queue`           | Execution job contract and bounded retry policy                              |
-| `tests`                    | Unit, SQL integration, WebSocket, and browser tests                          |
-| `infra`                    | Local Compose and collaboration container                                    |
+| Path                       | Responsibility                                                          |
+| -------------------------- | ----------------------------------------------------------------------- |
+| `apps/web`                 | Next.js application and landing page                                    |
+| `apps/collaboration`       | Authenticated Yjs relay, presence validation, and debounced persistence |
+| `apps/worker`              | Leased execution worker, sandbox adapter, and durable dispatch recovery |
+| `packages/contracts`       | Validated public input shapes and safe result projections               |
+| `packages/config`          | Validated per-process environment contracts and application limits      |
+| `packages/database`        | Prisma schema, reviewed SQL migration, database adapter, versioned seed |
+| `packages/problem-catalog` | Server-side problem definitions and test fixtures                       |
+| `packages/queue`           | Execution job contract and bounded retry policy                         |
+| `tests`                    | Unit, SQL integration, WebSocket, and browser tests                     |
+| `infra`                    | Local Compose and collaboration container                               |
 
 ## Read the engineering decisions
 

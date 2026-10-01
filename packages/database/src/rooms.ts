@@ -27,11 +27,12 @@ export interface RoomSummary {
   endedAt: Date | null;
   ownerId: string;
   selectedProblemId: string;
+  selectionRevision: number;
 }
 type LockedRoom = RoomSummary & { inviteExpiresAt: Date | null };
 type Member = { userId: string; seat: number; role: 'OWNER' | 'PARTICIPANT'; displayName: string };
 const summaryColumns =
-  'r.id, r.title, r.status, r."createdAt", r."endedAt", r."ownerId", r."selectedProblemId"';
+  'r.id, r.title, r.status, r."createdAt", r."endedAt", r."ownerId", r."selectedProblemId", r."selectionRevision"';
 export const inviteHash = (token: string) => createHash('sha256').update(token).digest('hex');
 const newInvite = () => {
   const token = randomBytes(32).toString('base64url');
@@ -199,9 +200,62 @@ export function createRoomService(store: RoomStore) {
         room,
         members,
         problem,
+        examples: (
+          await store.query<{ input: unknown; expectedOutput: unknown }>(
+            'SELECT input,"expectedOutput" FROM "TestCase" WHERE "problemId"=$1 AND visibility=\'VISIBLE\' ORDER BY ordering',
+            [room.selectedProblemId],
+          )
+        ).rows,
         savedCode: snapshot?.sourceCode ?? null,
         isOwner: room.ownerId === userId,
       };
+    },
+    async review(userId: string, roomId: string, cursor?: string) {
+      await requireMember(store, roomId, userId);
+      const rows = (
+        await store.query<{
+          id: string;
+          createdAt: Date;
+          kind: string;
+          label: string;
+          sourceCode: string | null;
+          problemTitle: string | null;
+        }>(
+          `WITH timeline AS (
+          SELECT s.id,s."createdAt",'SNAPSHOT'::text AS kind,s.reason::text AS label,s."sourceCode",p.title AS "problemTitle"
+          FROM "CodeSnapshot" s JOIN "Problem" p ON p.id=s."problemId" WHERE s."roomId"=$1
+          UNION ALL
+          SELECT e.id,e."createdAt",'EVENT'::text,e."eventType"::text,NULL::text,NULL::text
+          FROM "RoomEvent" e WHERE e."roomId"=$1
+        ) SELECT * FROM timeline WHERE $2::uuid IS NULL OR ("createdAt",id)<(
+          SELECT "createdAt",id FROM timeline WHERE id=$2::uuid
+        ) ORDER BY "createdAt" DESC,id DESC LIMIT 21`,
+          [roomId, cursor ?? null],
+        )
+      ).rows;
+      return { items: rows.slice(0, 20), nextCursor: rows.length > 20 ? rows[19]!.id : null };
+    },
+    async selectProblem(userId: string, roomId: string, problemId: string, revision: number) {
+      await store.transaction(async (sql) => {
+        const room = await lockRoom(sql, roomId, userId);
+        if (room.status !== 'ACTIVE')
+          throw new RoomError(409, 'ROOM_ENDED', 'This room has ended.');
+        if (room.selectionRevision !== revision)
+          throw new RoomError(
+            409,
+            'PROBLEM_CHANGED',
+            'Your partner changed the problem. Refresh and try again.',
+          );
+        if (!(await sql.query('SELECT id FROM "Problem" WHERE id=$1', [problemId])).rows.length)
+          throw new RoomError(422, 'INVALID_PROBLEM', 'Choose an available problem.');
+        if (room.selectedProblemId === problemId) return;
+        await sql.query(
+          'UPDATE "Room" SET "selectedProblemId"=$2,"selectionRevision"="selectionRevision"+1 WHERE id=$1',
+          [roomId, problemId],
+        );
+        await event(sql, roomId, userId, 'PROBLEM_CHANGED');
+      });
+      return { roomId };
     },
     async rotateInvite(userId: string, roomId: string) {
       const invite = newInvite();

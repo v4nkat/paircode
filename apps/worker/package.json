@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node src/worker.ts"
+    "dev": "node --env-file-if-exists=../../.env --import tsx src/worker.ts",
+    "start": "node --import tsx src/worker.ts"
   },
   "dependencies": {
     "tsx": "4.23.13",

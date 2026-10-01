@@ -2,9 +2,9 @@
 
 ## Current state
 
-Rooms use Clerk, membership-scoped APIs, hashed invitations, and transactional joining. Shared editing uses single-use connection tickets, origin and membership checks, validated presence, bounded updates, and persisted document state. See [collaboration controls and limits](docs/collaboration.md). There is no execution consumer or submission endpoint yet.
+Rooms use Clerk, membership-scoped APIs, hashed invitations, and transactional joining. Shared editing uses single-use connection tickets, origin and membership checks, validated presence, bounded updates, and persisted document state. See [collaboration controls and limits](docs/collaboration.md). Execution endpoints and a separate Judge0 worker are implemented, but have not been exercised against a deployed sandbox.
 
-Do not treat the project as a production code runner. The table below includes both implemented room/editor controls and requirements for the future execution pipeline.
+Do not treat the project as a production code runner. Sandbox host isolation and service configuration still require live verification.
 
 ## Assets and trust boundaries
 
@@ -33,7 +33,7 @@ Never execute user code inside Next.js, the queue worker, or a normal applicatio
 
 Judge0's documented status list has no distinct memory-limit verdict. Only label memory exhaustion when the selected deployment provides reliable evidence. Do not classify every SIGKILL or runtime failure as a memory limit. Verify Python syntax-error mapping too.
 
-Proposed per-case limits are 2 CPU seconds, 10 wall seconds, and 128 MiB. Actual sandbox settings, process/file/output caps, network isolation and enforcement remain to be validated. Public execution stays disabled until validated.
+Requested per-case limits are 2 CPU seconds, 10 wall seconds, and 128 MiB by default. The worker also requests one process, a 64 KiB output file limit, and disabled network access. The operator must verify actual enforcement and keep the sandbox patched. Public execution stays disabled until validated.
 
 ## Reporting
 

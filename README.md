@@ -43,6 +43,8 @@ Open **http://localhost:3000**. The foundation page requires no authentication c
 
 For shared editing, see [collaboration setup and verification](docs/collaboration.md). To use rooms, follow [the sign-in and database setup guide](docs/auth-setup.md). Next.js needs its own `apps/web/.env.local`; the root `.env` is used by migration and Compose commands. Open the app at the exact configured `APP_ORIGIN` when creating or joining rooms.
 
+On macOS, [run the two-person demo without Docker](docs/macos-no-docker.md) using Homebrew PostgreSQL and Redis. Python execution stays disabled until a separate, isolated Judge0 service has been configured and verified.
+
 ## Start the development services
 
 Install Docker Desktop with Linux containers. Copy `.env.example` to `.env`, set a random **local-only** `POSTGRES_PASSWORD`, and put the same URL-encoded password in `DATABASE_URL`. Set a generated `COLLABORATION_CONTROL_SECRET` as described in the collaboration guide. The checked-in values are placeholders, not usable production credentials.

@@ -7,5 +7,9 @@ export const dynamic = 'force-dynamic';
 export default async function Page({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = await params;
   if (!roomIdSchema.safeParse(roomId).success) notFound();
-  return (await pageAccess()) ? <RoomPage roomId={roomId} /> : <SetupMessage />;
+  return (await pageAccess()) ? (
+    <RoomPage roomId={roomId} executionEnabled={process.env.EXECUTION_ENABLED === 'true'} />
+  ) : (
+    <SetupMessage />
+  );
 }

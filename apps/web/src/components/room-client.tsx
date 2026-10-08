@@ -247,7 +247,13 @@ export function Dashboard() {
     </RoomShell>
   );
 }
-export function RoomPage({ roomId }: { roomId: string }) {
+export function RoomPage({
+  roomId,
+  executionEnabled,
+}: {
+  roomId: string;
+  executionEnabled: boolean;
+}) {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -449,9 +455,15 @@ export function RoomPage({ roomId }: { roomId: string }) {
               roomId={roomId}
               problemId={detail.problem.id}
               selectionRevision={detail.room.selectionRevision}
-              executionEnabled
+              executionEnabled={executionEnabled}
               onSavedChange={savedChanged}
             />
+          )}
+          {detail.room.status === 'ACTIVE' && !executionEnabled && (
+            <p className={styles.muted} role="status">
+              Python runs are off until an isolated runner is connected. You can still practice
+              together and save your code.
+            </p>
           )}
         </>
       )}
